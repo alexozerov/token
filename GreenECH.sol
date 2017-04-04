@@ -8,7 +8,7 @@ contract owned{
 contract tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData); }
 contract Tengri is owned
 {
-    string public standard = 'Tengri2017';
+    string public standard = 'GreenECH';
     string public name;
     string public symbol;
     uint8 public decimals;
@@ -22,9 +22,11 @@ contract Tengri is owned
     event ApprovAccount(address target, bool approve);
     
     modifier isActiveContract { if (!activeContract) throw; _; }
-    modifier isApprovedAccount { if (!(approvedAccount[msg.sender] && activeContract)) throw; _; }
+    modifier isApprovedAccount(address _to) { 
+    	if (!(approvedAccount[_to] && approvedAccount[from] && activeContract)) throw; _;
+    }
    
-    function Tengri(uint256 initialSupply, string tokenName, uint8 decimalUnits, string tokenSymbol) payable
+    function GreenECH(uint256 initialSupply, string tokenName, uint8 decimalUnits, string tokenSymbol) payable
     {
         balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
         totalSupply = initialSupply;                        // Update total supply
@@ -69,7 +71,7 @@ contract Tengri is owned
         ApprovAccount(target, approve);
     }
    
-    function transfer(address _to, uint256 _value) isApprovedAccount {
+    function transfer(address _to, uint256 _value) isApprovedAccount (_to) {
         if (balanceOf[msg.sender] < _value) throw;           // Check if the sender has enough
         if (balanceOf[_to] + _value < balanceOf[_to]) throw; // Check for overflows
         balanceOf[msg.sender] -= _value;                     // Subtract from the sender
