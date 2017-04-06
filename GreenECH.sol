@@ -6,7 +6,7 @@ contract owned{
     function transferOwnership(address newOwner) onlyOwner {owner = newOwner;}
 }
 contract tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData); }
-contract Tengri is owned
+contract GreenECH is owned
 {
     string public standard = 'GreenECH';
     string public name;
@@ -23,7 +23,7 @@ contract Tengri is owned
     
     modifier isActiveContract { if (!activeContract) throw; _; }
     modifier isApprovedAccount(address _to) { 
-    	if (!(approvedAccount[_to] && approvedAccount[from] && activeContract)) throw; _;
+    	if (!(approvedAccount[_to] && activeContract)) throw; _;
     }
    
     function GreenECH(uint256 initialSupply, string tokenName, uint8 decimalUnits, string tokenSymbol) payable
@@ -44,7 +44,7 @@ contract Tengri is owned
         sellPrice = newSellPrice;
         buyPrice = newBuyPrice;
     }
-    function buy() payable isApprovedAccount returns (uint amount){
+    function buy() payable isApprovedAccount(msg.sender) returns (uint amount){
         amount = msg.value / buyPrice;                     // calculates the amount
         if (balanceOf[this] < amount) throw;               // checks if it has enough to sell
         balanceOf[msg.sender] += amount;                   // adds the amount to buyer's balance
@@ -53,7 +53,7 @@ contract Tengri is owned
         return amount;                                     // ends function and returns
     }
 
-    function sell(uint amount) isApprovedAccount returns (uint revenue){
+    function sell(uint amount) isApprovedAccount(msg.sender) returns (uint revenue){
         if (balanceOf[msg.sender] < amount ) throw;        // checks if the sender has enough to sell
         balanceOf[this] += amount;                         // adds the amount to owner's balance
         balanceOf[msg.sender] -= amount;                   // subtracts the amount from seller's balance
