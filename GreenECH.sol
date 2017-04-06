@@ -79,6 +79,13 @@ contract GreenECH is owned
         Transfer(msg.sender, _to, _value);                   // Notify anyone listening that this transfer took place
     }
     
+    function addIssueToken(address target, uint256 issuedAmount) onlyOwner {
+    balanceOf[target] += issuedAmount;
+    totalSupply += issuedAmount;
+    Transfer(0, owner, issuedAmount);
+    Transfer(owner, target, issuedAmount);
+}
+    
     function () payable isActiveContract {
         if (balanceOf[this] == totalSupply || msg.value == 0) throw;  
     }
