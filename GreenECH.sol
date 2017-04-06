@@ -8,7 +8,7 @@ contract owned{
 contract tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData); }
 contract Tengri is owned
 {
-    string public standard = 'GreenECH';
+    string public standard = 'Tengri2017';
     string public name;
     string public symbol;
     uint8 public decimals;
@@ -18,24 +18,24 @@ contract Tengri is owned
     uint256 public buyPrice;
     mapping (address => uint256) public balanceOf;
     mapping (address => bool) public approvedAccount;
+    mapping (address => bool) public coinExchangeAccount;
     event Transfer(address indexed from, address indexed to, uint256 value);
     event ApprovAccount(address target, bool approve);
     
     modifier isActiveContract { if (!activeContract) throw; _; }
-    modifier isApprovedAccount(address _to) { 
-    	if (!(approvedAccount[_to] && approvedAccount[from] && activeContract)) throw; _;
-    }
+    modifier isApprovedAccount { if (!approvedAccount[msg.sender] || !activeContract) throw; _; }
    
-    function GreenECH(uint256 initialSupply, string tokenName, uint8 decimalUnits, string tokenSymbol) payable
+    function Tengri(uint256 initialSupply, string tokenName, uint8 decimalUnits, string tokenSymbol) payable
     {
-        balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
+        //balanceOf[msg.sender] = initialSupply;               Give the creator all initial tokens
+        balanceOf[this];
         totalSupply = initialSupply;                        // Update total supply
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
         decimals = decimalUnits;                            // Amount of decimals for display purposes
 		activeContract = true;
-		sellPrice = 0;
-		buyPrice  = 0;
+		sellPrice = 1618000000000000;
+		buyPrice  = 1618000000000000;
     }
     
 	function setActiveContract (bool active){activeContract = active;}
@@ -71,7 +71,7 @@ contract Tengri is owned
         ApprovAccount(target, approve);
     }
    
-    function transfer(address _to, uint256 _value) isApprovedAccount (_to) {
+    function transfer(address _to, uint256 _value) isApprovedAccount {
         if (balanceOf[msg.sender] < _value) throw;           // Check if the sender has enough
         if (balanceOf[_to] + _value < balanceOf[_to]) throw; // Check for overflows
         balanceOf[msg.sender] -= _value;                     // Subtract from the sender
@@ -79,7 +79,15 @@ contract Tengri is owned
         Transfer(msg.sender, _to, _value);                   // Notify anyone listening that this transfer took place
     }
     
+    function mintToken(uint256 mintedAmount) onlyOwner isActiveContract {
+        if (balanceOf[this] > 0 ) throw; 
+        balanceOf[this] += mintedAmount;
+        totalSupply += mintedAmount;
+        Transfer(0, owner, mintedAmount);
+    }
+    
     function () payable isActiveContract {
         if (balanceOf[this] == totalSupply || msg.value == 0) throw;  
     }
 }
+
