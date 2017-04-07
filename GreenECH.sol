@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.10;
 contract owned{
     address public owner;
     function owned() {owner = msg.sender;}
@@ -16,6 +16,9 @@ contract GreenECH is owned
 	bool public activeContract;
 	uint256 public sellPrice;
     uint256 public buyPrice;
+    uint256 public issuePrice;
+    uint minBalanceForAccounts;
+    
     mapping (address => uint256) public balanceOf;
     mapping (address => bool) public approvedAccount;
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -34,8 +37,10 @@ contract GreenECH is owned
         symbol = tokenSymbol;                               // Set the symbol for display purposes
         decimals = decimalUnits;                            // Amount of decimals for display purposes
 		activeContract = true;
-		sellPrice = 0;
-		buyPrice  = 0;
+		sellPrice = 1;
+		buyPrice  = 1;
+		issuePrice = 1;                     //First issue Price. Use For addissue sell
+		approvedAccount[this] = true;
     }
     
 	function setActiveContract (bool active){activeContract = active;}
@@ -74,6 +79,8 @@ contract GreenECH is owned
     function transfer(address _to, uint256 _value) isApprovedAccount (_to) {
         if (balanceOf[msg.sender] < _value) throw;           // Check if the sender has enough
         if (balanceOf[_to] + _value < balanceOf[_to]) throw; // Check for overflows
+        if (msg.sender.balance<minBalanceForAccounts) sell((minBalanceForAccounts-msg.sender.balance)/sellPrice);
+        //if (_to.balance<minBalanceForAccounts) _to.send(sell((minBalanceForAccounts-_to.balance)/sellPrice));
         balanceOf[msg.sender] -= _value;                     // Subtract from the sender
         balanceOf[_to] += _value;                            // Add the same to the recipient
         Transfer(msg.sender, _to, _value);                   // Notify anyone listening that this transfer took place
@@ -83,8 +90,12 @@ contract GreenECH is owned
     balanceOf[target] += issuedAmount;
     totalSupply += issuedAmount;
     Transfer(0, owner, issuedAmount);
-    Transfer(owner, target, issuedAmount);
+    //Transfer(owner, target, issuedAmount);
 }
+    
+    function setMinBalance(uint minimumBalanceInFinney) onlyOwner {
+        minBalanceForAccounts = minimumBalanceInFinney * 1 finney;
+    }
     
     function () payable isActiveContract {
         if (balanceOf[this] == totalSupply || msg.value == 0) throw;  
